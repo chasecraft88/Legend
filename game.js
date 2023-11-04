@@ -1,241 +1,154 @@
-const canvasModule = {
-  gameContainer: document.getElementById("gameContainer"),
-  canvas: document.getElementById("gameCanvas"),
-  ctx: null,
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+// Define game variables
+const player = {
+    x: 50,
+    y: 50,
+    width: 30,
+    height: 30,
+    speed: 2,
+    jumpStrength: 6,
+    isJumping: false,
 };
 
-const canvasBorderWidth = 5; // Width of the canvas border
-const canvasBorderHeight = 5; // Height of the canvas border
+// Define the level map
+const tileSize = 20;
+const map = [
+    "1111111111111111111111111111111111111111111111111111111111111111",
+    "1000000100000000000000000000000000000000100000000000000000009001",
+    "1000000100000000010000000000000000000000100000000001111100111111",
+    "1000000010000000010000000000009000000000100009000011000111000001",
+    "1000000010000009010000000001111110000090101111110010000000000001",
+    "1000000000000111110000000000000000000111111000000010000100000001",
+    "1000000000000000010000000000000000000000100000000001000100000001",
+    "1000000001000000010000090000000000000000100000000001000100002111",
+    "1000000001000000010001111100000000100000100000110111000111011101",
+    "1110090000100001111110000000000000100000100000100001000100001001",
+    "1001111111100000000000000000000000100000000000000001000100000001",
+    "1000000000000000000000000100000900100000009000100001000100001001",
+    "1000000000000000000000001000111111100111111111100001000100001001",
+    "1000000000900000000000011001000000000000000000111001000100091001",
+    "1000000111111000000000010001000000000000000000001001000100110001",
+    "1000000000001111100000100010000000000000000000000101000101000001",
+    "1000000000000000100001100110000000000090000000100011000110000001",
+    "1000000111000000109010001100001111111111111111100001101100000101",
+    "1090011100100000111100011000001000000000000000100000000000001011",
+    "1111110000100000000001110000001100100000000000119000000000911001",
+    "1110000000100000000111000000000000100000000000011111000111110001",
+    "1000000000100000000000000000900000100090000000010001000100010001",
+    "1000000000100001111111111111111111111111111111111111000111110001",
+    "1000000090100001100100000011100000111000000000100000000000000001",
+    "1000001111100001000100000011000000011000000000000000000000000001",
+    "1000000000100001000100010010000900001000000000900000000000090001",
+    "1100000000100001000100010000000100000000011111111110011111111111",
+    "1110000000100001000000010000000100000000000000100000000000000001",
+    "1001000000100001000000010010000000001000000000100100000000000001",
+    "1001100000100001000100000011000000011000000000100100000000000001",
+    "1000110000110001000100900011100000111000090000190000000100090001",
+    "1000011000010001000011111111110001111111111111111110011100111101",
+    "1000000000010000000000000010000000001000000000100000000100000001",
+    "1000000000010000000000000010000000001000000000100000000100000001",
+"1000000000019000000111000010001000001000100100000000100100009001",
+    "1009001100011100000000000010001000001000100100000001000111111111",
+    "1111111000000100000000000010011100001000000000100010000000000001",
+    "1000000000000100000000000010001000001000009000100100000009000001",
+    "1000000000000000000090000010000000001000111111100000010111100001",
+    "1000000000900001111111110010000000901000000000100900010000000001",
+    "1000000001111111000000000010000000111000000000111111110000000001",
+    "1000000000000000000000000010000000001000110000000000011111111001",
+    "1000000000000000000000000010000000001000000000000000010000001001",
+    "1001000100000000000000000010000111001000090011000000010090001001",
+    "1001000100000000000000000011090100001111111111111000010011101001",
+    "1001000101111111111111111011111100001000000000000000010000000001",
+    "1001000101000000000000000010000000001000000011100000010000000001",
+    "1001000101110000000001111110000000001000000000000000010001001111",
+    "1001555101000000900000111000000090001001100000000000010001111001",
+    "1001111101000001111000110000011111001000100090000000010001000001",
+    "1400000001000090000000100000000000011000111111110000010001000001",
+    "1111111111000111111110100000000000111000100000011100010001000901",
+    "1000000001000100000000100000009001110000101110000000010001001111",
+    "1000000001000100000000100011111111100000100000090000000001000001",
+    "1000000001000100000000100000000000000000100011111110000001000001",
+    "1110090001000100009000100000000000000000110000000010000001000001",
+    "1000011000000100011111100111110000000000111000900010000000090001",
+    "1000000000090100010000000100000000001111111111111111111111111111"
+];
 
-canvasModule.setupCanvas = () => {
-  canvasModule.ctx = canvasModule.canvas.getContext("2d");
-  canvasModule.canvas.width = canvasModule.gameContainer.clientWidth;
-  canvasModule.canvas.height = canvasModule.gameContainer.clientHeight;
-};
+canvas.width = map[0].length * tileSize;
+canvas.height = map.length * tileSize;
 
-canvasModule.setupCanvas();
+// Game loop
+function gameLoop() {
+    clearCanvas();
+    update();
+    draw();
+    requestAnimationFrame(gameLoop);
+}
 
-const playerModule = {
-  player: {
-    x: 0,
-    y: 0,
-    radius: 20,
-    velocityX: 0,
-    accelerationX: 0.1,
-  },
+function clearCanvas() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
 
-  setupPlayer: () => {
-    playerModule.player.x = canvasModule.canvas.width / 2;
-    playerModule.player.y = canvasModule.canvas.height - 30;
-  },
-
-  drawPlayer: () => {
-    const player = playerModule.player;
-    canvasModule.ctx.beginPath();
-    canvasModule.ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
-    canvasModule.ctx.fillStyle = "blue";
-    canvasModule.ctx.fill();
-    canvasModule.ctx.closePath();
-  },
-
-  updatePlayer: () => {
-    const player = playerModule.player;
-
-    // Handle player's movement with physics
-    player.x += player.velocityX;
-    player.velocityX += player.accelerationX;
-
-    // Ensure the player stays within the game field
-    if (player.x - player.radius < canvasBorderWidth) {
-      player.x = player.radius + canvasBorderWidth;
-      player.velocityX = -player.velocityX; // Bounce off the border
+function update() {
+    // Handle player input
+    if (player.isJumping) {
+        player.y -= player.jumpStrength;
     }
-    if (player.x + player.radius > canvasModule.canvas.width - canvasBorderWidth) {
-      player.x = canvasModule.canvas.width - player.radius - canvasBorderWidth;
-      player.velocityX = -player.velocityX; // Bounce off the border
-    }
-  },
-};
 
-playerModule.setupPlayer();
+    // Simulate gravity and check for collisions with the map
+    const row = Math.floor(player.y / tileSize);
+    const col = Math.floor(player.x / tileSize);
 
-const enemyModule = {
-  enemies: [],
-
-  colors: ["red", "green", "blue", "yellow"],
-
-  createEnemy: () => {
-    const enemy = {
-      x: Math.random() * canvasModule.canvas.width,
-      y: Math.random() * canvasModule.canvas.height,
-      radius: 15,
-      dx: Math.random() * 2 - 1, // Random X-axis velocity
-      dy: Math.random() * 2 - 1, // Random Y-axis velocity
-      color: enemyModule.colors[Math.floor(Math.random() * enemyModule.colors.length)],
-    };
-
-    // Ensure the enemy stays within the canvas boundaries
-    if (enemy.x - enemy.radius < canvasBorderWidth) {
-      enemy.x = enemy.radius + canvasBorderWidth;
-    }
-    if (enemy.x + enemy.radius > canvasModule.canvas.width - canvasBorderWidth) {
-      enemy.x = canvasModule.canvas.width - enemy.radius - canvasBorderWidth;
-    }
-    if (enemy.y - enemy.radius < canvasBorderHeight) {
-      enemy.y = enemy.radius + canvasBorderHeight;
-    }
-    if (enemy.y + enemy.radius > canvasModule.canvas.height - canvasBorderHeight) {
-      enemy.y = canvasModule.canvas.height - enemy.radius - canvasBorderHeight;
-    }
-
-    // Push the enemy object to the array
-    enemyModule.enemies.push(enemy);
-  },
-
-  drawEnemies: () => {
-    enemyModule.enemies.forEach((enemy) => {
-      canvasModule.ctx.beginPath();
-      canvasModule.ctx.arc(enemy.x, enemy.y, enemy.radius, 0, Math.PI * 2);
-      canvasModule.ctx.fillStyle = enemy.color;
-      canvasModule.ctx.fill();
-      canvasModule.ctx.closePath();
-    });
-  },
-
-  updateEnemies: () => {
-    enemyModule.enemies.forEach((enemy, index) => {
-      if (collisionModule.detectCollision(playerModule.player, enemy)) {
-        // Increase player's radius when colliding with an enemy
-        playerModule.player.radius += 2;
-        enemyModule.enemies.splice(index, 1);
-      } else {
-        // Update enemy positions with slight random movement
-        enemy.x += enemy.dx;
-        enemy.y += enemy.dy;
-
-        // Ensure enemies stay within the canvas boundaries
-        if (enemy.x - enemy.radius < canvasBorderWidth) {
-          enemy.x = enemy.radius + canvasBorderWidth;
-          enemy.dx = -enemy.dx; // Bounce off the canvas edge
+    if (player.y < canvas.height - player.height) {
+        if (map[row] && map[row][col] === "1") {
+            // Collision detected, stop falling and reset jump
+            player.isJumping = false;
+            player.y = row * tileSize + tileSize;
+        } else {
+            player.y += 1; // Gravity
         }
-        if (enemy.x + enemy.radius > canvasModule.canvas.width - canvasBorderWidth) {
-          enemy.x = canvasModule.canvas.width - enemy.radius - canvasBorderWidth;
-          enemy.dx = -enemy.dx; // Bounce off the canvas edge
-        }
-        if (enemy.y - enemy.radius < canvasBorderHeight) {
-          enemy.y = enemy.radius + canvasBorderHeight;
-          enemy.dy = -enemy.dy; // Bounce off the canvas edge
-        }
-        if (enemy.y + enemy.radius > canvasModule.canvas.height - canvasBorderHeight) {
-          enemy.y = canvasModule.canvas.height - enemy.radius - canvasBorderHeight;
-          enemy.dy = -enemy.dy; // Bounce off the canvas edge
-        }
-      }
-    });
-  },
-};
-
-const collisionModule = {
-  detectCollision: (obj1, obj2) => {
-    const dx = obj2.x - obj1.x;
-    const dy = obj2.y - obj1.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    return distance < obj1.radius + obj2.radius;
-  },
-};
-
-const gameModule = {
-  isGameOver: false,
-  winCondition: false,
-
-  // Score variable
-  score: 0,
-
-  // Display score on the canvas
-  drawScore: () => {
-    canvasModule.ctx.font = "24px Arial";
-    canvasModule.ctx.fillStyle = "black";
-    canvasModule.ctx.fillText(`Score: ${gameModule.score}`, 20, 40);
-  },
-
-  updateGame: () => {
-    if (!gameModule.isGameOver) {
-      canvasModule.ctx.clearRect(0, 0, canvasModule.canvas.width, canvasModule.canvas.height);
-
-      // Draw the game border
-      canvasModule.ctx.beginPath();
-      canvasModule.ctx.lineWidth = canvasBorderWidth;
-      canvasModule.ctx.strokeStyle = "black";
-      canvasModule.ctx.rect(
-        canvasBorderWidth / 2,
-        canvasBorderHeight / 2,
-        canvasModule.canvas.width - canvasBorderWidth,
-        canvasModule.canvas.height - canvasBorderHeight
-      );
-      canvasModule.ctx.stroke();
-      canvasModule.ctx.closePath();
-
-      playerModule.updatePlayer();
-      playerModule.drawPlayer();
-
-      // Generate new enemies
-      if (Math.random() < 0.02) {
-        enemyModule.createEnemy();
-      }
-
-      enemyModule.updateEnemies();
-      enemyModule.drawEnemies();
-
-      // Update and draw the score
-      gameModule.drawScore();
-
-      // Check for win condition
-      if (playerModule.player.radius > enemyModule.biggestEnemy().radius) {
-        gameModule.isGameOver = true;
-        gameModule.winCondition = true;
-        gameModule.gameOver();
-      }
-
-      // Continue the game loop
-      requestAnimationFrame(gameModule.updateGame);
     } else {
-      if (gameModule.winCondition) {
-        // Display win message
-        canvasModule.ctx.font = "24px Arial";
-        canvasModule.ctx.fillStyle = "green";
-        canvasModule.ctx.fillText("You Win!", canvasModule.canvas.width / 2 - 60, canvasModule.canvas.height / 2);
-      } else {
-        gameModule.gameOver();
-        // Display game over message
-        canvasModule.ctx.font = "20px Arial";
-        canvasModule.ctx.fillStyle = "red";
-        canvasModule.ctx.fillText("Game Over", canvasModule.canvas.width / 2 - 60, canvasModule.canvas.height / 2);
-        canvasModule.ctx.fillText("Click to restart", canvasModule.canvas.width / 2 - 90, canvasModule.canvas.height / 2 + 30);
-      }
+        player.isJumping = false;
     }
-  },
 
-  startGame: () => {
-    gameModule.updateGame();
-  },
+    // Check for win/lose conditions
+}
 
-  gameOver: () => {
-    // Handle game over logic
+function draw() {
+    // Draw level
+    for (let row = 0; row < map.length; row++) {
+        for (let col = 0; col < map[row].length; col++) {
+            if (map[row][col] === "1") {
+                ctx.fillStyle = 'green';
+                ctx.fillRect(col * tileSize, row * tileSize, tileSize, tileSize);
+            }
+        }
+    }
 
-    // Add a restart game event listener
-    canvasModule.canvas.addEventListener("click", function (event) {
-      if (gameModule.isGameOver) {
-        // Reset game variables and restart the game
-        playerModule.setupPlayer();
-        enemyModule.enemies = [];
-        playerModule.player.radius = 20;
-        gameModule.isGameOver = false;
-        gameModule.winCondition = false;
-        gameModule.score = 0; // Reset the score
-        gameModule.startGame();
-      }
-    });
-  },
-};
+    // Draw player
+    ctx.fillStyle = 'blue';
+    ctx.fillRect(player.x, player.y, player.width, player.height);
 
-gameModule.startGame();
+    // Draw game over or win message
+}
+
+// Touch input handling
+canvas.addEventListener('touchstart', (event) => {
+    const touchX = event.touches[0].clientX;
+    
+    if (touchX < canvas.width / 2) {
+        // Move left
+        if (player.x > 0) {
+            player.x -= player.speed;
+        }
+    } else {
+        // Move right
+        if (player.x + player.width < canvas.width) {
+            player.x += player.speed;
+        }
+    }
+});
+
+// Start the game loop
+gameLoop();
